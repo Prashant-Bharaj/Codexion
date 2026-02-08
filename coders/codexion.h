@@ -6,7 +6,7 @@
 /*   By: prasingh <prasingh@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 00:00:00 by prasingh          #+#    #+#             */
-/*   Updated: 2026/02/08 11:03:27 by prasingh         ###   ########.fr       */
+/*   Updated: 2026/02/08 12:18:24 by prasingh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <pthread.h>
 # include <stddef.h>
+# include <sys/time.h>
 
 # define CODEX_FIFO 0
 # define CODEX_EDF 1
@@ -74,6 +75,12 @@ long					elapsed_ms(long start);
 void					safe_log(t_sim *sim, int coder_id, const char *msg);
 
 int						parse_args(int argc, char **argv, t_params *params);
+int						dongle_init_sim(t_dongle *d, void *queue);
+void					dongle_destroy_sim(t_dongle *d);
+int						init_simulation(t_sim *sim);
+void					cleanup_simulation(t_sim *sim);
+int						parse_and_init(t_sim *sim, int argc, char **argv);
+int						run_simulation(t_sim *sim);
 
 void					*dongle_request_queue_create(int scheduler);
 void					dongle_request_queue_destroy(void *queue);
@@ -83,17 +90,39 @@ int						dongle_request_queue_remove_front(void *queue);
 int						dongle_request_queue_peek_can_serve(void *queue,
 							int coder_id);
 
-int						dongle_init(t_dongle *d, void *queue);
-void					dongle_destroy(t_dongle *d);
+void					abs_time_in_ms(long ms_from_now, struct timespec *ts);
+long					calc_wait_ms(long cooldown_until, long now);
 int						dongle_acquire(t_dongle *d, t_sim *sim, int coder_id,
 							long deadline);
 void					dongle_release(t_dongle *d, t_sim *sim);
 void					signal_stop(t_sim *sim);
 
+int						acquire_two_dongles(t_sim *sim, int coder_id,
+							int left_idx, int right_idx);
+void					release_two_dongles(t_sim *sim, int left_idx,
+							int right_idx);
 void					*coder_routine(void *arg);
 void					*monitor_routine(void *arg);
 
 int						get_left_dongle(int coder_id, int num_coders);
 int						get_right_dongle(int coder_id, int num_coders);
+
+typedef struct s_pq_node
+{
+	int					coder_id;
+	long				priority;
+}						t_pq_node;
+
+typedef struct s_priority_queue
+{
+	t_pq_node			*nodes;
+	int					capacity;
+	int					size;
+	int					scheduler;
+}						t_priority_queue;
+
+void					heapify_up(t_priority_queue *pq, int idx);
+void					heapify_down(t_priority_queue *pq, int idx);
+int						grow_queue(t_priority_queue *pq);
 
 #endif

@@ -76,6 +76,21 @@ static int	parse_int(const char *s)
 	return (n * sign);
 }
 
+static int	parse_scheduler(const char *s, t_params *params)
+{
+	if (strcmp(s, "fifo") == 0)
+	{
+		params->scheduler = CODEX_FIFO;
+		return (0);
+	}
+	if (strcmp(s, "edf") == 0)
+	{
+		params->scheduler = CODEX_EDF;
+		return (0);
+	}
+	return (-1);
+}
+
 int	parse_args(int argc, char **argv, t_params *params)
 {
 	if (argc != 9 || !params)
@@ -92,16 +107,11 @@ int	parse_args(int argc, char **argv, t_params *params)
 	params->time_to_refactor = parse_long(argv[5]);
 	params->num_compiles_required = parse_int(argv[6]);
 	params->dongle_cooldown = parse_long(argv[7]);
-	if (params->num_coders < 1 || params->time_to_burnout < 0
-		|| params->time_to_compile < 0 || params->time_to_debug < 0
-		|| params->time_to_refactor < 0 || params->num_compiles_required < 0
-		|| params->dongle_cooldown < 0)
+	if (params->num_coders < 2)
+		return (-2);
+	if (params->time_to_burnout < 0 || params->time_to_compile < 0
+		|| params->time_to_debug < 0 || params->time_to_refactor < 0
+		|| params->num_compiles_required < 0 || params->dongle_cooldown < 0)
 		return (-1);
-	if (strcmp(argv[8], "fifo") == 0)
-		params->scheduler = CODEX_FIFO;
-	else if (strcmp(argv[8], "edf") == 0)
-		params->scheduler = CODEX_EDF;
-	else
-		return (-1);
-	return (0);
+	return (parse_scheduler(argv[8], params));
 }

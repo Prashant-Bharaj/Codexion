@@ -12,8 +12,9 @@
 
 NAME		= codexion
 
-SRCS		= main.c utils.c parse_args.c dongle.c coder.c monitor.c \
-			  priority_queue.c geometry.c
+SRCS		= main.c main_parse.c main_run.c utils.c parse_args.c dongle.c \
+			  dongle_time.c coder.c coder_dongle.c sim_init.c sim_cleanup.c \
+			  sim_dongle.c monitor.c priority_queue.c pq_heap.c geometry.c
 
 OBJS		= $(SRCS:.c=.o)
 

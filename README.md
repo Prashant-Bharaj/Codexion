@@ -39,6 +39,16 @@ make
 ./codexion 4 1200 200 200 1 5 2 fifo
 ```
 
+### Testing
+
+Run the tester script (requires bash, e.g. WSL or Linux):
+
+```bash
+./tester.sh
+```
+
+The tester checks: compilation, invalid arguments, success scenarios, burnout detection, and log format. On Windows, if you see CRLF errors, run `sed -i 's/\r$//' tester.sh` first.
+
 ## Blocking cases handled
 
 - **Deadlock prevention (Coffman's conditions):** Dongles are always acquired in a global order (lower index first). When a coder needs left and right dongles, they acquire `min(left_idx, right_idx)` before `max(left_idx, right_idx)`, ensuring a consistent lock ordering and breaking the circular wait condition.

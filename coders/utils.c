@@ -15,6 +15,25 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+void	signal_stop(t_sim *sim)
+{
+	int	i;
+
+	if (!sim)
+		return ;
+	pthread_mutex_lock(&sim->stop_mutex);
+	sim->stop = 1;
+	pthread_mutex_unlock(&sim->stop_mutex);
+	i = 0;
+	while (i < sim->params.num_coders)
+	{
+		pthread_mutex_lock(&sim->dongles[i].mutex);
+		pthread_cond_broadcast(&sim->dongles[i].cond);
+		pthread_mutex_unlock(&sim->dongles[i].mutex);
+		i++;
+	}
+}
+
 long	get_time_ms(void)
 {
 	struct timeval	tv;
