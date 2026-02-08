@@ -6,7 +6,7 @@
 /*   By: prasingh <prasingh@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 00:00:00 by prasingh          #+#    #+#             */
-/*   Updated: 2026/02/08 12:18:24 by prasingh         ###   ########.fr       */
+/*   Updated: 2026/02/08 13:47:58 by prasingh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,9 @@ void					safe_log(t_sim *sim, int coder_id, const char *msg);
 int						parse_args(int argc, char **argv, t_params *params);
 int						dongle_init_sim(t_dongle *d, void *queue);
 void					dongle_destroy_sim(t_dongle *d);
+int						init_mutexes(t_sim *sim);
+int						alloc_dongles(t_sim *sim);
+int						alloc_coder_data(t_sim *sim);
 int						init_simulation(t_sim *sim);
 void					cleanup_simulation(t_sim *sim);
 int						parse_and_init(t_sim *sim, int argc, char **argv);

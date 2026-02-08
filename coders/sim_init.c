@@ -6,7 +6,7 @@
 /*   By: prasingh <prasingh@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/08 00:00:00 by prasingh          #+#    #+#             */
-/*   Updated: 2026/02/08 00:00:00 by prasingh         ###   ########.fr       */
+/*   Updated: 2026/02/08 13:47:58 by prasingh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ static int	init_dongles(t_sim *sim, int *i)
 	*i = 0;
 	while (*i < sim->params.num_coders)
 	{
-		sim->dongles[*i].request_queue = dongle_request_queue_create(sim->params.scheduler);
+		sim->dongles[*i].request_queue = dongle_request_queue_create(
+				sim->params.scheduler);
 		if (!sim->dongles[*i].request_queue)
 			return (-1);
 		if (dongle_init_sim(&sim->dongles[*i],
@@ -76,45 +77,18 @@ static void	cleanup_on_fail(t_sim *sim, int up_to_dongle, int up_to_coder)
 	pthread_mutex_destroy(&sim->log_mutex);
 }
 
-static int	init_mutexes(t_sim *sim)
-{
-	if (pthread_mutex_init(&sim->log_mutex, NULL) != 0)
-		return (-1);
-	if (pthread_mutex_init(&sim->stop_mutex, NULL) != 0)
-	{
-		pthread_mutex_destroy(&sim->log_mutex);
-		return (-1);
-	}
-	return (0);
-}
-
-int	init_simulation(t_sim *sim)
+static int	init_dongles_and_data(t_sim *sim)
 {
 	int	i;
 
-	sim->start_time = get_time_ms();
-	sim->stop = 0;
-	sim->burnout_coder = 0;
-	sim->num_coders_finished = 0;
-	if (init_mutexes(sim) != 0)
+	if (alloc_dongles(sim) != 0)
 		return (-1);
-	sim->dongles = (t_dongle *)malloc(sizeof(t_dongle)
-			* sim->params.num_coders);
-	if (!sim->dongles)
-	{
-		pthread_mutex_destroy(&sim->log_mutex);
-		pthread_mutex_destroy(&sim->stop_mutex);
-		return (-1);
-	}
-	memset(sim->dongles, 0, sizeof(t_dongle) * sim->params.num_coders);
 	if (init_dongles(sim, &i) != 0)
 	{
 		cleanup_on_fail(sim, i, 0);
 		return (-1);
 	}
-	sim->coder_data = (t_coder_data *)malloc(sizeof(t_coder_data)
-			* sim->params.num_coders);
-	if (!sim->coder_data)
+	if (alloc_coder_data(sim) != 0)
 	{
 		cleanup_on_fail(sim, sim->params.num_coders, 0);
 		return (-1);
@@ -125,4 +99,15 @@ int	init_simulation(t_sim *sim)
 		return (-1);
 	}
 	return (0);
+}
+
+int	init_simulation(t_sim *sim)
+{
+	sim->start_time = get_time_ms();
+	sim->stop = 0;
+	sim->burnout_coder = 0;
+	sim->num_coders_finished = 0;
+	if (init_mutexes(sim) != 0)
+		return (-1);
+	return (init_dongles_and_data(sim));
 }
