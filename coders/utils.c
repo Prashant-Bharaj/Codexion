@@ -6,12 +6,13 @@
 /*   By: prasingh <prasingh@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/08 11:04:29 by prasingh          #+#    #+#             */
-/*   Updated: 2026/02/08 11:04:35 by prasingh         ###   ########.fr       */
+/*   Updated: 2026/02/12 11:05:38 by prasingh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 #include <stdio.h>
+#include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -53,6 +54,13 @@ void	safe_log(t_sim *sim, int coder_id, const char *msg)
 
 	if (!sim)
 		return ;
+	pthread_mutex_lock(&sim->stop_mutex);
+	if (sim->stop && strcmp(msg, "burned out") != 0)
+	{
+		pthread_mutex_unlock(&sim->stop_mutex);
+		return ;
+	}
+	pthread_mutex_unlock(&sim->stop_mutex);
 	pthread_mutex_lock(&sim->log_mutex);
 	ts = get_time_ms() - sim->start_time;
 	printf("%ld %d %s\n", ts, coder_id, msg);

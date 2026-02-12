@@ -1,6 +1,6 @@
-# Codexion
-
 *This project has been created as part of the 42 curriculum by prasingh.*
+
+# Codexion
 
 ## Description
 
@@ -38,16 +38,6 @@ make
 ```bash
 ./codexion 4 1200 200 200 1 5 2 fifo
 ```
-
-### Testing
-
-Run the tester script (requires bash, e.g. WSL or Linux):
-
-```bash
-./tester.sh
-```
-
-The tester checks: compilation, invalid arguments, success scenarios, burnout detection, and log format. On Windows, if you see CRLF errors, run `sed -i 's/\r$//' tester.sh` first.
 
 ## Blocking cases handled
 
