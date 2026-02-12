@@ -71,6 +71,7 @@ int	run_simulation(t_sim *sim)
 {
 	pthread_t	*threads;
 	t_coder_arg	*args;
+	int			i;
 
 	threads = (pthread_t *)malloc(sizeof(pthread_t)
 			* (sim->params.num_coders + 1));
@@ -79,6 +80,13 @@ int	run_simulation(t_sim *sim)
 	{
 		cleanup_on_fail(sim, threads, args);
 		return (-1);
+	}
+	sim->start_time = get_time_ms();
+	i = 0;
+	while (i < sim->params.num_coders)
+	{
+		sim->coder_data[i].last_compile_start = sim->start_time;
+		i++;
 	}
 	if (start_threads(sim, threads, args) != 0)
 	{

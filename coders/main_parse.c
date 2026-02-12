@@ -21,11 +21,6 @@ int	parse_and_init(t_sim *sim, int argc, char **argv)
 
 	memset(sim, 0, sizeof(*sim));
 	i = parse_args(argc, argv, &sim->params);
-	if (i == -2)
-	{
-		fprintf(stderr, "Error: need at least 2 coders\n");
-		return (-1);
-	}
 	if (i != 0)
 	{
 		fprintf(stderr,

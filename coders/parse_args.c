@@ -6,7 +6,7 @@
 /*   By: prasingh <prasingh@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 00:00:00 by prasingh          #+#    #+#             */
-/*   Updated: 2026/02/08 11:04:21 by prasingh         ###   ########.fr       */
+/*   Updated: 2026/02/08 21:56:42 by prasingh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,8 +107,8 @@ int	parse_args(int argc, char **argv, t_params *params)
 	params->time_to_refactor = parse_long(argv[5]);
 	params->num_compiles_required = parse_int(argv[6]);
 	params->dongle_cooldown = parse_long(argv[7]);
-	if (params->num_coders < 2)
-		return (-2);
+	if (params->num_coders < 1)
+		return (-1);
 	if (params->time_to_burnout < 0 || params->time_to_compile < 0
 		|| params->time_to_debug < 0 || params->time_to_refactor < 0
 		|| params->num_compiles_required < 0 || params->dongle_cooldown < 0)

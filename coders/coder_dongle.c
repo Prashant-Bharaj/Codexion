@@ -44,6 +44,8 @@ int	acquire_two_dongles(t_sim *sim, int coder_id, int left_idx, int right_idx)
 	int		second;
 	long	deadline;
 
+	if (sim->params.num_coders < 2)
+		return (-1);
 	deadline = get_deadline(&sim->coder_data[coder_id - 1],
 			sim->params.time_to_burnout);
 	order_indices(left_idx, right_idx, &first, &second);
