@@ -58,14 +58,22 @@ static int	acquire_wait_loop(t_dongle *d, t_sim *sim, int coder_id)
 int	dongle_acquire(t_dongle *d, t_sim *sim, int coder_id, long deadline)
 {
 	long	priority;
+	int		n;
 
 	if (!d || !sim)
 		return (-1);
-	priority = deadline;
 	if (sim->params.scheduler == CODEX_FIFO)
 		priority = get_time_ms();
+	else
+	{
+		n = sim->params.num_coders + 1;
+		/* EDF: lower deadline first; tie-break: higher coder_id first */
+		priority = deadline * (long)n + (long)(n - coder_id);
+	}
 	pthread_mutex_lock(&d->mutex);
 	dongle_request_queue_add(d->request_queue, coder_id, priority);
+	pthread_mutex_unlock(&d->mutex);
+	pthread_mutex_lock(&d->mutex);
 	if (acquire_wait_loop(d, sim, coder_id) == 0)
 	{
 		pthread_mutex_unlock(&d->mutex);

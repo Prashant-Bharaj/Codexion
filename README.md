@@ -36,7 +36,7 @@ make
 **Example:**
 
 ```bash
-./codexion 4 1200 200 200 1 5 2 fifo
+./codexion 4 410 200 200 200 5 1 fifo
 ```
 
 ## Blocking cases handled
