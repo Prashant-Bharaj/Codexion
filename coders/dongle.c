@@ -6,25 +6,13 @@
 /*   By: prasingh <prasingh@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/08 11:03:31 by prasingh          #+#    #+#             */
-/*   Updated: 2026/02/16 15:23:53 by prasingh         ###   ########.fr       */
+/*   Updated: 2026/02/16 19:22:17 by prasingh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 #include <stdlib.h>
 #include <sys/time.h>
-
-static int	should_stop(t_sim *sim)
-{
-	int	stop;
-
-	if (!sim)
-		return (1);
-	pthread_mutex_lock(&sim->stop_mutex);
-	stop = sim->stop;
-	pthread_mutex_unlock(&sim->stop_mutex);
-	return (stop);
-}
 
 static int	try_acquire(t_dongle *d, int coder_id, long now)
 {
@@ -43,16 +31,23 @@ static int	acquire_wait_loop(t_dongle *d, t_sim *sim, int coder_id)
 {
 	long			now;
 	struct timespec	abstime;
+	int				stop;
 
-	while (!should_stop(sim))
+	while (1)
 	{
 		now = get_time_ms();
 		if (try_acquire(d, coder_id, now) == 0)
 			return (0);
+		
+		pthread_mutex_lock(&sim->stop_mutex);
+		stop = sim->stop;
+		pthread_mutex_unlock(&sim->stop_mutex);
+		if (stop)
+			return (-1);
+		
 		abs_time_in_ms(calc_wait_ms(d->cooldown_until, now), &abstime);
 		pthread_cond_timedwait(&d->cond, &d->mutex, &abstime);
 	}
-	return (-1);
 }
 
 int	dongle_acquire(t_dongle *d, t_sim *sim, int coder_id, long deadline)
