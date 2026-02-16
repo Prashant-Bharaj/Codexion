@@ -22,9 +22,12 @@ void	signal_stop(t_sim *sim)
 
 	if (!sim)
 		return ;
+	pthread_mutex_lock(&sim->sched_mutex);
 	pthread_mutex_lock(&sim->stop_mutex);
 	sim->stop = 1;
 	pthread_mutex_unlock(&sim->stop_mutex);
+	pthread_cond_broadcast(&sim->sched_cond);
+	pthread_mutex_unlock(&sim->sched_mutex);
 	i = 0;
 	while (i < sim->params.num_coders)
 	{

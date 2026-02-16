@@ -62,12 +62,15 @@ struct					s_sim
 	t_params			params;
 	t_dongle			*dongles;
 	t_coder_data		*coder_data;
+	void				*sched_queue;
 	long				start_time;
 	int					stop;
 	int					burnout_coder;
 	int					num_coders_finished;
 	pthread_mutex_t		log_mutex;
 	pthread_mutex_t		stop_mutex;
+	pthread_mutex_t		sched_mutex;
+	pthread_cond_t		sched_cond;
 };
 
 long					get_time_ms(void);
