@@ -39,9 +39,28 @@ make
   `time_to_refactor`, `dongle_cooldown`) must be **≥ 60 ms**.
 - `number_of_compiles_required` must be **≥ 1**.
 
-**Example:**
+**Basic example:**
 
 ```bash
+./codexion 4 410 200 200 200 5 60 fifo
+```
+
+## Test scenarios
+
+These are some useful **manual test cases** you can run to explore the
+behaviour of the simulation:
+
+```bash
+# 5 coders, tight EDF schedule that must avoid burnout
+./codexion 5 850 200 200 100 6 80 edf
+
+# 5 coders, slightly looser burnout time
+./codexion 5 980 200 200 100 6 80 edf
+
+# 3 coders, EDF with moderate cooldown
+./codexion 3 850 200 200 100 6 80 edf
+
+# Simple FIFO run (no EDF), 4 coders
 ./codexion 4 410 200 200 200 5 60 fifo
 ```
 
