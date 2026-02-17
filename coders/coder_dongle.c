@@ -6,7 +6,7 @@
 /*   By: prasingh <prasingh@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/08 00:00:00 by prasingh          #+#    #+#             */
-/*   Updated: 2026/02/08 00:00:00 by prasingh         ###   ########.fr       */
+/*   Updated: 2026/02/17 20:22:28 by prasingh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,7 @@ static void	enqueue_both(t_sim *sim, int cid, int f, int s)
 	if (sim->params.scheduler == CODEX_FIFO)
 		priority = get_time_ms();
 	else
-		priority = deadline * (long)(sim->params.num_coders + 1)
-			+ (long)(sim->params.num_coders - cid);
+		priority = deadline;
 	pthread_mutex_lock(&sim->dongles[f].mutex);
 	dongle_request_queue_add(sim->dongles[f].request_queue,
 		cid, priority);
@@ -65,7 +64,7 @@ static int	acquire_loop(t_sim *sim, int cid, int f, int s)
 	struct timespec	ts;
 
 	pthread_mutex_lock(&sim->dongles[f].mutex);
-	while (!is_stopped(sim))
+	while (1)
 	{
 		pthread_mutex_lock(&sim->dongles[s].mutex);
 		if (try_take_pair(sim, cid, f, s))
@@ -82,9 +81,9 @@ static int	acquire_loop(t_sim *sim, int cid, int f, int s)
 		abs_time_in_ms(wait_ms, &ts);
 		pthread_cond_timedwait(&sim->dongles[f].cond,
 			&sim->dongles[f].mutex, &ts);
+		if (is_stopped(sim))
+			return (pthread_mutex_unlock(&sim->dongles[f].mutex), (-1));
 	}
-	pthread_mutex_unlock(&sim->dongles[f].mutex);
-	return (-1);
 }
 
 int	acquire_two_dongles(t_sim *sim, int cid, int left, int right)
