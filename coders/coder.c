@@ -60,17 +60,13 @@ static int	do_one_compile(t_sim *sim, int coder_id, int left_idx,
 	return (0);
 }
 
-void	*coder_routine(void *arg)
+static void	coder_loop(t_sim *sim, int coder_id)
 {
-	t_sim	*sim;
-	int		coder_id;
 	int		left_idx;
 	int		right_idx;
 	int		done;
 	int		should_stop;
 
-	sim = ((t_coder_arg *)arg)->sim;
-	coder_id = ((t_coder_arg *)arg)->coder_id;
 	get_coder_dongles(coder_id, sim->params.num_coders, &left_idx, &right_idx);
 	while (1)
 	{
@@ -78,16 +74,26 @@ void	*coder_routine(void *arg)
 		should_stop = sim->stop;
 		pthread_mutex_unlock(&sim->stop_mutex);
 		if (should_stop)
-			return (NULL);
+			return ;
 		if (do_one_compile(sim, coder_id, left_idx, right_idx) != 0)
-			return (NULL);
+			return ;
 		done = check_done(sim, coder_id);
 		if (done != 0)
 		{
 			if (done == 2)
 				signal_stop(sim);
-			return (NULL);
+			return ;
 		}
 	}
+}
+
+void	*coder_routine(void *arg)
+{
+	t_sim	*sim;
+	int		coder_id;
+
+	sim = ((t_coder_arg *)arg)->sim;
+	coder_id = ((t_coder_arg *)arg)->coder_id;
+	coder_loop(sim, coder_id);
 	return (NULL);
 }

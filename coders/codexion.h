@@ -74,6 +74,7 @@ long					get_time_ms(void);
 int						is_stopped(t_sim *sim);
 void					wake_all_dongles(t_sim *sim);
 void					safe_log(t_sim *sim, int coder_id, const char *msg);
+void					log_take_two_dongles(t_sim *sim, int coder_id);
 
 int						parse_args(int argc, char **argv, t_params *params);
 int						dongle_init_sim(t_dongle *d, void *queue);
@@ -95,6 +96,7 @@ int						dongle_request_queue_peek_can_serve(void *queue,
 							int coder_id);
 
 void					abs_time_in_ms(long ms_from_now, struct timespec *ts);
+long					pair_wait_ms(t_sim *sim, int f, int s, long now);
 void					dongle_release(t_dongle *d, t_sim *sim);
 void					signal_stop(t_sim *sim);
 

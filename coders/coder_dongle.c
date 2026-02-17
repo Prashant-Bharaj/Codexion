@@ -58,56 +58,20 @@ static int	try_take_pair(t_sim *sim, int cid, int f, int s)
 	return (1);
 }
 
-/* Caller holds mutexes for dongles f and s. Returns ms to wait (1..500). */
-static long	pair_wait_ms(t_sim *sim, int f, int s, long now)
+static int	acquire_loop(t_sim *sim, int cid, int f, int s)
 {
-	long	wait_f;
-	long	wait_s;
-	long	wait_ms;
-
-	wait_f = sim->dongles[f].cooldown_until - now;
-	wait_s = sim->dongles[s].cooldown_until - now;
-	if (wait_f < 0)
-		wait_f = 0;
-	if (wait_s < 0)
-		wait_s = 0;
-	if (wait_f > 0 && wait_s > 0)
-		wait_ms = (wait_f <= wait_s) ? wait_f + 1 : wait_s + 1;
-	else if (wait_f > 0)
-		wait_ms = wait_f + 1;
-	else if (wait_s > 0)
-		wait_ms = wait_s + 1;
-	else
-		wait_ms = 100;
-	if (wait_ms > 500)
-		wait_ms = 500;
-	if (wait_ms < 1)
-		wait_ms = 1;
-	return (wait_ms);
-}
-
-int	acquire_two_dongles(t_sim *sim, int cid, int left, int right)
-{
-	int				f;
-	int				s;
 	long			now;
 	long			wait_ms;
 	struct timespec	ts;
-	t_dongle		*df;
 
-	if (sim->params.num_coders < 2)
-		return (-1);
-	order_indices(left, right, &f, &s);
-	enqueue_both(sim, cid, f, s);
-	df = &sim->dongles[f];
-	pthread_mutex_lock(&df->mutex);
+	pthread_mutex_lock(&sim->dongles[f].mutex);
 	while (!is_stopped(sim))
 	{
 		pthread_mutex_lock(&sim->dongles[s].mutex);
 		if (try_take_pair(sim, cid, f, s))
 		{
 			pthread_mutex_unlock(&sim->dongles[s].mutex);
-			pthread_mutex_unlock(&df->mutex);
+			pthread_mutex_unlock(&sim->dongles[f].mutex);
 			safe_log(sim, cid, "has taken a dongle");
 			safe_log(sim, cid, "has taken a dongle");
 			return (0);
@@ -116,10 +80,23 @@ int	acquire_two_dongles(t_sim *sim, int cid, int left, int right)
 		wait_ms = pair_wait_ms(sim, f, s, now);
 		pthread_mutex_unlock(&sim->dongles[s].mutex);
 		abs_time_in_ms(wait_ms, &ts);
-		pthread_cond_timedwait(&df->cond, &df->mutex, &ts);
+		pthread_cond_timedwait(&sim->dongles[f].cond,
+			&sim->dongles[f].mutex, &ts);
 	}
-	pthread_mutex_unlock(&df->mutex);
+	pthread_mutex_unlock(&sim->dongles[f].mutex);
 	return (-1);
+}
+
+int	acquire_two_dongles(t_sim *sim, int cid, int left, int right)
+{
+	int	f;
+	int	s;
+
+	if (sim->params.num_coders < 2)
+		return (-1);
+	order_indices(left, right, &f, &s);
+	enqueue_both(sim, cid, f, s);
+	return (acquire_loop(sim, cid, f, s));
 }
 
 void	release_two_dongles(t_sim *sim, int left_idx, int right_idx)
