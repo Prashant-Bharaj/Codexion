@@ -58,10 +58,40 @@ static int	try_take_pair(t_sim *sim, int cid, int f, int s)
 	return (1);
 }
 
+/* Caller holds mutexes for dongles f and s. Returns ms to wait (1..500). */
+static long	pair_wait_ms(t_sim *sim, int f, int s, long now)
+{
+	long	wait_f;
+	long	wait_s;
+	long	wait_ms;
+
+	wait_f = sim->dongles[f].cooldown_until - now;
+	wait_s = sim->dongles[s].cooldown_until - now;
+	if (wait_f < 0)
+		wait_f = 0;
+	if (wait_s < 0)
+		wait_s = 0;
+	if (wait_f > 0 && wait_s > 0)
+		wait_ms = (wait_f <= wait_s) ? wait_f + 1 : wait_s + 1;
+	else if (wait_f > 0)
+		wait_ms = wait_f + 1;
+	else if (wait_s > 0)
+		wait_ms = wait_s + 1;
+	else
+		wait_ms = 100;
+	if (wait_ms > 500)
+		wait_ms = 500;
+	if (wait_ms < 1)
+		wait_ms = 1;
+	return (wait_ms);
+}
+
 int	acquire_two_dongles(t_sim *sim, int cid, int left, int right)
 {
 	int				f;
 	int				s;
+	long			now;
+	long			wait_ms;
 	struct timespec	ts;
 	t_dongle		*df;
 
@@ -82,8 +112,10 @@ int	acquire_two_dongles(t_sim *sim, int cid, int left, int right)
 			safe_log(sim, cid, "has taken a dongle");
 			return (0);
 		}
+		now = get_time_ms();
+		wait_ms = pair_wait_ms(sim, f, s, now);
 		pthread_mutex_unlock(&sim->dongles[s].mutex);
-		abs_time_in_ms(1, &ts);
+		abs_time_in_ms(wait_ms, &ts);
 		pthread_cond_timedwait(&df->cond, &df->mutex, &ts);
 	}
 	pthread_mutex_unlock(&df->mutex);

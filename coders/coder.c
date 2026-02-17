@@ -71,10 +71,7 @@ void	*coder_routine(void *arg)
 
 	sim = ((t_coder_arg *)arg)->sim;
 	coder_id = ((t_coder_arg *)arg)->coder_id;
-	left_idx = get_left_dongle(coder_id, sim->params.num_coders);
-	right_idx = get_right_dongle(coder_id, sim->params.num_coders);
-	if (coder_id % 2 == 0)
-		usleep(10000);
+	get_coder_dongles(coder_id, sim->params.num_coders, &left_idx, &right_idx);
 	while (1)
 	{
 		pthread_mutex_lock(&sim->stop_mutex);
