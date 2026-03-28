@@ -16,3 +16,4 @@ EVALUATION_SHEET.md
 
 # Gitignore itself
 .gitignore
+.gitattributes
