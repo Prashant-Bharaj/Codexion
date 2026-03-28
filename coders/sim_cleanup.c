@@ -39,6 +39,7 @@ static void	cleanup_dongles(t_sim *sim)
 	{
 		dongle_destroy_sim(&sim->dongles[i]);
 		dongle_request_queue_destroy(sim->dongles[i].request_queue);
+		dongle_request_queue_destroy(sim->dongles[i].request_queue_s);
 		i++;
 	}
 	free(sim->dongles);

@@ -20,27 +20,16 @@ void	*dongle_request_queue_create(int scheduler)
 	pq = (t_priority_queue *)malloc(sizeof(t_priority_queue));
 	if (!pq)
 		return (NULL);
-	pq->capacity = 64;
 	pq->size = 0;
 	pq->scheduler = scheduler;
-	pq->nodes = (t_pq_node *)malloc(sizeof(t_pq_node) * pq->capacity);
-	if (!pq->nodes)
-	{
-		free(pq);
-		return (NULL);
-	}
 	return (pq);
 }
 
 void	dongle_request_queue_destroy(void *queue)
 {
-	t_priority_queue	*pq;
-
 	if (!queue)
 		return ;
-	pq = (t_priority_queue *)queue;
-	free(pq->nodes);
-	free(pq);
+	free(queue);
 }
 
 void	dongle_request_queue_add(void *queue, int coder_id, long priority)
@@ -50,12 +39,40 @@ void	dongle_request_queue_add(void *queue, int coder_id, long priority)
 	if (!queue)
 		return ;
 	pq = (t_priority_queue *)queue;
-	if (pq->size >= pq->capacity && grow_queue(pq) != 0)
+	if (pq->size >= 2)
 		return ;
 	pq->nodes[pq->size].coder_id = coder_id;
 	pq->nodes[pq->size].priority = priority;
 	heapify_up(pq, pq->size);
 	pq->size++;
+}
+
+void	dongle_request_queue_remove_coder(void *queue, int coder_id)
+{
+	t_priority_queue	*pq;
+	int					i;
+
+	if (!queue)
+		return ;
+	pq = (t_priority_queue *)queue;
+	i = 0;
+	while (i < pq->size)
+	{
+		if (pq->nodes[i].coder_id == coder_id)
+		{
+			pq->size--;
+			if (i < pq->size)
+				pq->nodes[i] = pq->nodes[pq->size];
+			if (pq->size == 0)
+				return ;
+			if (i == 0)
+				heapify_down(pq, 0);
+			else if (i < pq->size)
+				heapify_up(pq, i);
+			return ;
+		}
+		i++;
+	}
 }
 
 int	dongle_request_queue_remove_front(void *queue)

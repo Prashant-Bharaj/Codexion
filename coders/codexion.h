@@ -55,6 +55,7 @@ typedef struct s_dongle
 	long				cooldown_until;
 	int					holder;
 	void				*request_queue;
+	void				*request_queue_s;
 }						t_dongle;
 
 struct					s_sim
@@ -77,7 +78,8 @@ void					safe_log(t_sim *sim, int coder_id, const char *msg);
 void					log_take_two_dongles(t_sim *sim, int coder_id);
 
 int						parse_args(int argc, char **argv, t_params *params);
-int						dongle_init_sim(t_dongle *d, void *queue);
+int						dongle_init_sim(t_dongle *d, void *queue_f,
+							void *queue_s);
 void					dongle_destroy_sim(t_dongle *d);
 int						init_mutexes(t_sim *sim);
 int						alloc_dongles(t_sim *sim);
@@ -93,6 +95,8 @@ void					dongle_request_queue_add(void *queue, int coder_id,
 							long priority);
 int						dongle_request_queue_remove_front(void *queue);
 int						dongle_request_queue_peek_can_serve(void *queue,
+							int coder_id);
+void					dongle_request_queue_remove_coder(void *queue,
 							int coder_id);
 
 void					abs_time_in_ms(long ms_from_now, struct timespec *ts);
@@ -122,14 +126,12 @@ typedef struct s_pq_node
 
 typedef struct s_priority_queue
 {
-	t_pq_node			*nodes;
-	int					capacity;
+	t_pq_node			nodes[2];
 	int					size;
 	int					scheduler;
 }						t_priority_queue;
 
 void					heapify_up(t_priority_queue *pq, int idx);
 void					heapify_down(t_priority_queue *pq, int idx);
-int						grow_queue(t_priority_queue *pq);
 
 #endif

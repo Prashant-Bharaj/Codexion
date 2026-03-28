@@ -13,9 +13,9 @@
 #include "codexion.h"
 #include <stdlib.h>
 
-int	dongle_init_sim(t_dongle *d, void *queue)
+int	dongle_init_sim(t_dongle *d, void *queue_f, void *queue_s)
 {
-	if (!d || !queue)
+	if (!d || !queue_f || !queue_s)
 		return (-1);
 	if (pthread_mutex_init(&d->mutex, NULL) != 0)
 		return (-1);
@@ -26,7 +26,8 @@ int	dongle_init_sim(t_dongle *d, void *queue)
 	}
 	d->cooldown_until = 0;
 	d->holder = -1;
-	d->request_queue = queue;
+	d->request_queue = queue_f;
+	d->request_queue_s = queue_s;
 	return (0);
 }
 

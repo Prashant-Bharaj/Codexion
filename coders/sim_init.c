@@ -23,12 +23,24 @@ static int	init_dongles(t_sim *sim, int *i)
 	{
 		sim->dongles[*i].request_queue = dongle_request_queue_create(
 				sim->params.scheduler);
-		if (!sim->dongles[*i].request_queue)
+		sim->dongles[*i].request_queue_s = dongle_request_queue_create(
+				sim->params.scheduler);
+		if (!sim->dongles[*i].request_queue
+			|| !sim->dongles[*i].request_queue_s)
+		{
+			if (sim->dongles[*i].request_queue)
+				dongle_request_queue_destroy(sim->dongles[*i].request_queue);
+			if (sim->dongles[*i].request_queue_s)
+				dongle_request_queue_destroy(sim->dongles[*i].request_queue_s);
+			cleanup_on_fail(sim, *i, 0);
 			return (-1);
+		}
 		if (dongle_init_sim(&sim->dongles[*i],
-				sim->dongles[*i].request_queue) != 0)
+				sim->dongles[*i].request_queue,
+				sim->dongles[*i].request_queue_s) != 0)
 		{
 			dongle_request_queue_destroy(sim->dongles[*i].request_queue);
+			dongle_request_queue_destroy(sim->dongles[*i].request_queue_s);
 			cleanup_on_fail(sim, *i, 0);
 			return (-1);
 		}
@@ -69,6 +81,7 @@ static void	cleanup_on_fail(t_sim *sim, int up_to_dongle, int up_to_coder)
 	{
 		dongle_destroy_sim(&sim->dongles[j]);
 		dongle_request_queue_destroy(sim->dongles[j].request_queue);
+		dongle_request_queue_destroy(sim->dongles[j].request_queue_s);
 		j++;
 	}
 	if (sim->dongles)
