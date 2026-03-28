@@ -21,26 +21,8 @@ static int	init_dongles(t_sim *sim, int *i)
 	*i = 0;
 	while (*i < sim->params.num_coders)
 	{
-		sim->dongles[*i].request_queue = dongle_request_queue_create(
-				sim->params.scheduler);
-		sim->dongles[*i].request_queue_s = dongle_request_queue_create(
-				sim->params.scheduler);
-		if (!sim->dongles[*i].request_queue
-			|| !sim->dongles[*i].request_queue_s)
+		if (init_single_dongle(sim, *i) != 0)
 		{
-			if (sim->dongles[*i].request_queue)
-				dongle_request_queue_destroy(sim->dongles[*i].request_queue);
-			if (sim->dongles[*i].request_queue_s)
-				dongle_request_queue_destroy(sim->dongles[*i].request_queue_s);
-			cleanup_on_fail(sim, *i, 0);
-			return (-1);
-		}
-		if (dongle_init_sim(&sim->dongles[*i],
-				sim->dongles[*i].request_queue,
-				sim->dongles[*i].request_queue_s) != 0)
-		{
-			dongle_request_queue_destroy(sim->dongles[*i].request_queue);
-			dongle_request_queue_destroy(sim->dongles[*i].request_queue_s);
 			cleanup_on_fail(sim, *i, 0);
 			return (-1);
 		}

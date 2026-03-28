@@ -108,6 +108,8 @@ int						acquire_two_dongles(t_sim *sim, int coder_id,
 							int left_idx, int right_idx);
 void					release_two_dongles(t_sim *sim, int left_idx,
 							int right_idx);
+int						try_take_and_log(t_sim *sim, int cid, int f, int s);
+int						init_single_dongle(t_sim *sim, int i);
 void					*coder_routine(void *arg);
 void					*monitor_routine(void *arg);
 

@@ -17,9 +17,9 @@ SRC_DIR		= coders
 OBJ_DIR		= obj
 
 SRCS		= main.c main_parse.c main_run.c utils.c parse_args.c \
-			  dongle_time.c coder.c coder_dongle.c sim_init.c sim_alloc.c \
-			  sim_cleanup.c sim_dongle.c monitor.c priority_queue.c pq_heap.c \
-			  geometry.c
+			  dongle_time.c coder.c coder_dongle.c dongle_pair.c sim_init.c \
+			  sim_alloc.c sim_cleanup.c sim_dongle.c monitor.c \
+			  priority_queue.c pq_heap.c geometry.c
 
 OBJS		= $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))
 

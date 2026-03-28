@@ -36,3 +36,15 @@ void	heapify_down(t_priority_queue *pq, int idx)
 		pq->nodes[1] = tmp;
 	}
 }
+
+int	dongle_request_queue_peek_can_serve(void *queue, int coder_id)
+{
+	t_priority_queue	*pq;
+
+	if (!queue)
+		return (0);
+	pq = (t_priority_queue *)queue;
+	if (pq->size == 0)
+		return (0);
+	return (pq->nodes[0].coder_id == coder_id);
+}

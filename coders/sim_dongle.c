@@ -52,3 +52,25 @@ void	dongle_release(t_dongle *d, t_sim *sim)
 	pthread_mutex_unlock(&d->mutex);
 	wake_all_dongles(sim);
 }
+
+int	init_single_dongle(t_sim *sim, int i)
+{
+	sim->dongles[i].request_queue
+		= dongle_request_queue_create(sim->params.scheduler);
+	sim->dongles[i].request_queue_s
+		= dongle_request_queue_create(sim->params.scheduler);
+	if (!sim->dongles[i].request_queue || !sim->dongles[i].request_queue_s)
+	{
+		dongle_request_queue_destroy(sim->dongles[i].request_queue);
+		dongle_request_queue_destroy(sim->dongles[i].request_queue_s);
+		return (-1);
+	}
+	if (dongle_init_sim(&sim->dongles[i], sim->dongles[i].request_queue,
+			sim->dongles[i].request_queue_s) != 0)
+	{
+		dongle_request_queue_destroy(sim->dongles[i].request_queue);
+		dongle_request_queue_destroy(sim->dongles[i].request_queue_s);
+		return (-1);
+	}
+	return (0);
+}
