@@ -72,9 +72,31 @@ Not all parameter combinations are valid. The simulation will always burn out
 if `time_to_burnout` is shorter than the minimum time a coder must wait before
 its next compile.
 
-### Formula
+### Guaranteed safe formula
 
-The minimum cycle time for one coder depends on the topology:
+The following condition guarantees **no coder ever burns out**, regardless of
+scheduling order or OS timing variance. It assumes the absolute worst case:
+all other N-1 coders compile sequentially before this coder gets a turn.
+
+```
+time_to_burnout > (N - 1) × (time_to_compile + dongle_cooldown)
+               + time_to_compile + time_to_debug + time_to_refactor
+```
+
+This is a **pessimistic upper bound** — in practice coders compile in parallel
+pairs so the actual required burnout is lower, but this formula is always safe.
+
+**Example (N=5, compile=debug=refactor=200ms, cooldown=80ms):**
+```
+time_to_burnout > (5-1) × (200 + 80) + 200 + 200 + 200
+               > 1120 + 600
+               > 1720ms
+```
+Verified: `./codexion 5 1800 200 200 200 3 80 edf` completes with no burnout.
+
+### Minimum cycle formula (tighter, topology-dependent)
+
+The actual minimum burnout needed depends on how many coders compile simultaneously:
 
 ```
 min_cycle = time_to_compile + time_to_debug + time_to_refactor
@@ -182,13 +204,15 @@ fail in practice. Burnout must be **significantly > 1126ms** (empirically ~1300m
 
 #### Summary table (compile=debug=refactor=200ms, cooldown=80ms)
 
-| N | 2nd compile at | Min burnout (empirical) | Safe example |
-|:---:|:---:|:---:|:---|
-| 1 | never | always fails | — |
-| 2 | ~601ms | > 601ms | `./codexion 2 1000 200 200 200 3 80 fifo` |
-| 3 | ~845ms | > 844ms | `./codexion 3 1000 200 200 200 3 80 fifo` |
-| 4 | ~1126ms | > 1125ms | `./codexion 4 1200 200 200 200 3 80 edf` |
-| 5 | ~1126ms | > ~1300ms (queue starvation) | `./codexion 5 1500 200 200 200 3 80 edf` |
+| N | 2nd compile at | Min burnout (empirical) | Guaranteed safe burnout `(N-1)*(C+D)+C+Dbg+R` | Guaranteed safe example |
+|:---:|:---:|:---:|:---:|:---|
+| 1 | never | always fails | — | — |
+| 2 | ~601ms | > 601ms | > 880ms | `./codexion 2 900 200 200 200 3 80 fifo` |
+| 3 | ~845ms | > 844ms | > 1160ms | `./codexion 3 1200 200 200 200 3 80 fifo` |
+| 4 | ~1126ms | > 1125ms | > 1440ms | `./codexion 4 1500 200 200 200 3 80 edf` |
+| 5 | ~1126ms | > ~1300ms | > 1720ms | `./codexion 5 1800 200 200 200 3 80 edf` |
+
+`C` = compile, `D` = cooldown, `Dbg` = debug, `R` = refactor (all 200ms, cooldown 80ms above).
 
 ## Blocking cases handled
 
