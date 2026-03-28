@@ -1,8 +1,18 @@
 # Compiled object files
 *.o
+obj/
 
-# Compiled binary
+# Compiled binaries
 coders/codexion
+codexion
+
+# Subject and evaluation files
+en.subject.pdf
+BURNOUT_ANALYSIS.md
+EDF_ANALYSIS.md
+EVALUATION_CHECKLIST.md
+EVALUATION_SHEET.md
+*.pdf
 
 # Gitignore itself
 .gitignore
