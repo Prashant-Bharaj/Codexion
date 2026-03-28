@@ -1,0 +1,8 @@
+# Compiled object files
+*.o
+
+# Compiled binary
+coders/codexion
+
+# Gitignore itself
+.gitignore
