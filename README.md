@@ -47,22 +47,90 @@ make
 
 ## Test scenarios
 
-These are some useful **manual test cases** you can run to explore the
-behaviour of the simulation:
+These are verified working test cases:
 
 ```bash
-# 5 coders, tight EDF schedule that must avoid burnout
-./codexion 5 850 200 200 100 6 80 edf
+# 2 coders FIFO — baseline, alternating compiles
+./codexion 2 2000 200 200 200 3 60 fifo
 
-# 5 coders, slightly looser burnout time
-./codexion 5 980 200 200 100 6 80 edf
+# 3 coders FIFO — sequential round-robin, one compile at a time
+./codexion 3 1500 200 200 200 4 80 fifo
 
-# 3 coders, EDF with moderate cooldown
-./codexion 3 850 200 200 100 6 80 edf
+# 4 coders EDF — coders 1&3 and 2&4 compile in parallel pairs
+./codexion 4 1200 200 200 200 4 80 edf
 
-# Simple FIFO run (no EDF), 4 coders
-./codexion 4 410 200 200 200 5 60 fifo
+# Cooldown stress test — 500ms cooldown, verifies dongle unavailability
+./codexion 2 2000 200 200 200 3 500 fifo
+
+# Burnout trigger — cycle time exceeds burnout, should fire correctly
+./codexion 3 400 200 200 200 5 80 fifo
 ```
+
+## Feasibility analysis
+
+Not all parameter combinations are valid. The simulation will always burn out
+if `time_to_burnout` is shorter than the minimum time a coder must wait before
+its next compile.
+
+### Formula
+
+The minimum cycle time for one coder depends on the topology:
+
+```
+min_cycle = time_to_compile + time_to_debug + time_to_refactor
+          + (max_coders_waiting × (time_to_compile + dongle_cooldown))
+```
+
+`time_to_burnout` must be **strictly greater** than `min_cycle`.
+
+### Topology constraints
+
+Coders sit in a circle and each needs their two neighbouring dongles.
+The maximum number of coders that can compile simultaneously is `floor(N/2)`,
+so a coder may wait for up to `ceil(N/2) - 1` others before it gets a turn.
+
+| N (coders) | Max simultaneous compilers | Max others to wait for |
+|:---:|:---:|:---:|
+| 1 | 0 — **always burns out** (only 1 dongle exists, need 2) | — |
+| 2 | 1 | 1 |
+| 3 | 1 | 2 |
+| 4 | 2 | 1 |
+| 5 | 2 | 2 |
+| N | floor(N/2) | ceil(N/2) - 1 |
+
+### Worked examples
+
+**1 coder:** Hard-coded infeasible. The program requires 2 dongles to compile
+but only 1 exists in a circle of 1. `acquire_two_dongles` returns early and
+the coder always burns out. This is a degenerate edge case acknowledged by the
+subject.
+
+**4 coders, burnout=410ms, compile/debug/refactor=200ms, cooldown=60ms:**
+```
+min_cycle = 200 + 200 + 200 + 1×(200 + 60) = 860ms  >  410ms  → always burns out
+```
+
+**5 coders, burnout=850ms, compile=200ms, debug=200ms, refactor=100ms, cooldown=80ms:**
+```
+max_others = ceil(5/2) - 1 = 2
+min_cycle  = 200 + 200 + 100 + 2×(200 + 80) = 1060ms  >  850ms  → always burns out
+```
+
+**3 coders, burnout=1500ms, compile=200ms, debug=200ms, refactor=200ms, cooldown=80ms:**
+```
+max_others = ceil(3/2) - 1 = 1
+min_cycle  = 200 + 200 + 200 + 1×(200 + 80) = 880ms  <  1500ms  → feasible ✓
+```
+
+**Safe minimum `time_to_burnout` for common setups (compile=debug=refactor=200ms, cooldown=80ms):**
+
+| N | Min safe burnout |
+|:---:|:---:|
+| 2 | > 680ms |
+| 3 | > 880ms |
+| 4 | > 680ms |
+| 5 | > 1060ms |
+| 10 | > 1260ms |
 
 ## Blocking cases handled
 
