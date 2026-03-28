@@ -22,7 +22,7 @@ static long	compute_priority(t_sim *sim, int cid)
 	pthread_mutex_unlock(&sim->coder_data[cid - 1].mutex);
 	if (sim->params.scheduler == CODEX_FIFO)
 		return (get_time_ms());
-	return (deadline * (sim->params.num_coders + 1) - cid);
+	return (deadline);
 }
 
 static int	phase1_wait(t_sim *sim, int cid, int f)
